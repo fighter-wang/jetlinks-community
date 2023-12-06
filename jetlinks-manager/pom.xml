@@ -18,6 +18,7 @@
         <module>notify-manager</module>
         <module>logging-manager</module>
         <module>rule-engine-manager</module>
+        <module>product-manager</module>
     </modules>
 
 </project>
