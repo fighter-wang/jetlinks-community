@@ -3,6 +3,7 @@ package org.jetlinks.community.product.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import org.h2.util.StringUtils;
 import org.hswebframework.ezorm.rdb.mapping.annotation.*;
 import org.hswebframework.web.api.crud.entity.*;
 import org.hswebframework.web.crud.annotation.EnableEntityEvent;
@@ -83,7 +84,7 @@ public class OrderEntity
 
     @Override
     public String getId() {
-        if (super.getId() == null) {
+        if (StringUtils.isNullOrEmpty(super.getId())) {
             generateId();
         }
         return super.getId();

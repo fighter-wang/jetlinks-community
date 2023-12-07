@@ -3,6 +3,7 @@ package org.jetlinks.community.product.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import org.h2.util.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hswebframework.ezorm.rdb.mapping.annotation.Comment;
 import org.hswebframework.ezorm.rdb.mapping.annotation.DefaultValue;
@@ -83,7 +84,7 @@ public class ItemEntity
 
     @Override
     public String getId() {
-        if (super.getId() == null) {
+        if (StringUtils.isNullOrEmpty(super.getId())) {
             generateId();
         }
         return super.getId();

@@ -222,8 +222,6 @@ springdoc:
     - group: 商品管理相关接口
       packages-to-scan:
         - org.jetlinks.community.product.web
-#      paths-to-match:
-#          - /prod/**
   cache:
     disabled: false
 network:
