@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import java.sql.JDBCType;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 订单管理实体类
@@ -37,11 +38,9 @@ public class OrderEntity
     @GeneratedValue(generator = Generators.DEFAULT_ID_GENERATOR)
     private String orderNumber;
 
-    @Schema(description = "订单商品ID集合")
-    @Column(name = "item_ids", updatable = false)
-    @JsonCodec
-    @ColumnType(jdbcType = JDBCType.LONGVARCHAR, javaType = String.class)
-    private List<String> itemIds;
+    @Schema(description = "商品ID")
+    @Column(name = "item_id")
+    private String itemId;
 
     @Schema(description = "订单类型")
     @Column
@@ -56,6 +55,20 @@ public class OrderEntity
     private OrderStatus status;
 
     @Column(updatable = false)
+    @Schema(
+        description = "创建人ID(只读)"
+        , accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private String creatorId;
+
+    @Column(length = 64)
+    @Schema(
+        description = "修改人ID"
+        , accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private String modifierId;
+
+    @Column(updatable = false)
     @DefaultValue(generator = Generators.CURRENT_TIME)
     @Schema(
         description = "创建时间(只读)"
@@ -68,20 +81,6 @@ public class OrderEntity
     @Schema(description = "更新时间")
     private Long modifyTime;
 
-    @Column(updatable = false)
-    @Schema(
-        description = "创建者ID(只读)"
-        , accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private String creatorId;
-
-    @Column(length = 64)
-    @Schema(
-        description = "修改人ID"
-        , accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private String modifierId;
-
     @Override
     public String getId() {
         if (StringUtils.isNullOrEmpty(super.getId())) {
@@ -91,11 +90,11 @@ public class OrderEntity
     }
 
     public void generateId() {
-        String id = generateHexId(orderNumber, itemIds);
+        String id = generateHexId(orderNumber, itemId);
         setId(id);
     }
 
-    public static String generateHexId(String orderNumber, List<String> itemIds) {
-        return DigestUtils.md5Hex(String.join(orderNumber, "|", String.join(",", itemIds)));
+    public static String generateHexId(String orderNumber, String itemId) {
+        return DigestUtils.md5Hex(String.join(orderNumber, "|", itemId));
     }
 }

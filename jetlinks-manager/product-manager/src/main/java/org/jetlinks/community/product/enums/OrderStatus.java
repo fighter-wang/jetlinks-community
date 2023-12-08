@@ -15,13 +15,14 @@ import org.hswebframework.web.dict.EnumDict;
 @AllArgsConstructor
 public enum OrderStatus implements EnumDict<String> {
     PENDING_PAYMENT("pendingPayment", "待付款"),
-    PENDING_CONFIRMATION("pendingConfirmation", "待确认"),
-    CONFIRMED("confirmed", "已确认"),
-    PREPARING_FOR_SHIPMENT("prepareForShipment", "准备发货"),
-    SHIPPED("shipped", "已发货"),
-    COMPLETED("completed", "已完成"),
-    CANCELLED("cancelled", "已取消"),
-    REFUNDED("refunded", "已退款");
+    PAYMENT_SUCCESS("paymentSuccess","付款成功"),
+    CONFIRMED("confirmed", "确认收货");
+//    REFUNDED("refunded", "已退款");
+    //    SHIPPED("shipped", "已发货"),
+//    COMPLETED("completed", "已完成"),
+//    CANCELLED("cancelled", "已取消"),
+    //    PREPARING_FOR_SHIPMENT("prepareForShipment", "准备发货"),
+//    PENDING_CONFIRMATION("pendingConfirmation", "待确认");
 
     private final String id;
 

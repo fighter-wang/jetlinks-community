@@ -5,11 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.h2.util.StringUtils;
 import org.hswebframework.ezorm.rdb.mapping.annotation.ColumnType;
 import org.hswebframework.ezorm.rdb.mapping.annotation.DefaultValue;
 import org.hswebframework.ezorm.rdb.mapping.annotation.EnumCodec;
 import org.hswebframework.ezorm.rdb.mapping.annotation.JsonCodec;
+import org.hswebframework.web.api.crud.entity.GenericEntity;
+import org.hswebframework.web.api.crud.entity.RecordCreationEntity;
+import org.hswebframework.web.api.crud.entity.RecordModifierEntity;
+import org.hswebframework.web.crud.annotation.EnableEntityEvent;
 import org.hswebframework.web.crud.generator.Generators;
+import org.hswebframework.web.utils.DigestUtils;
 import org.jetlinks.community.product.entity.ItemEntity;
 import org.jetlinks.community.product.enums.OrderStatus;
 
@@ -18,6 +24,7 @@ import javax.persistence.GeneratedValue;
 import javax.validation.constraints.NotBlank;
 import java.sql.JDBCType;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 订单管理具体信息
@@ -29,17 +36,16 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderInfoDetail {
-
-    @Schema(description = "订单ID")
-    private String id;
+public class OrderInfoDetail
+    extends GenericEntity<String> implements RecordCreationEntity, RecordModifierEntity {
 
     @Schema(description = "订单流水号")
+    @GeneratedValue(generator = Generators.DEFAULT_ID_GENERATOR)
     private String orderNumber;
 
     @Schema(description = "订单商品集合")
     @JsonCodec
-    private List<ItemEntity> itemList;
+    private List<String> itemIds;
 
     @Schema(description = "订单类型")
     private String type;
@@ -69,4 +75,21 @@ public class OrderInfoDetail {
         , accessMode = Schema.AccessMode.READ_ONLY
     )
     private String modifierId;
+
+    @Override
+    public String getId() {
+        if (StringUtils.isNullOrEmpty(super.getId())) {
+            generateId();
+        }
+        return super.getId();
+    }
+
+    public void generateId() {
+        String id = generateHexId(orderNumber, itemIds);
+        setId(id);
+    }
+
+    public static String generateHexId(String orderNumber, List<String> itemIds) {
+        return DigestUtils.md5Hex(String.join(orderNumber, "|", String.join(",", itemIds)));
+    }
 }

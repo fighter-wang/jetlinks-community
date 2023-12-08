@@ -1,4 +1,4 @@
-package org.jetlinks.community.product.service;
+package org.jetlinks.community.product.service.builder;
 
 import org.hswebframework.ezorm.core.param.Term;
 import org.hswebframework.ezorm.rdb.metadata.RDBColumnMetadata;
@@ -6,6 +6,9 @@ import org.hswebframework.ezorm.rdb.operator.builder.fragments.PrepareSqlFragmen
 import org.hswebframework.ezorm.rdb.operator.builder.fragments.SqlFragments;
 import org.hswebframework.ezorm.rdb.operator.builder.fragments.term.AbstractTermFragmentBuilder;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 前端可使用以下方式传参:
@@ -33,11 +36,11 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class ExtendedTermBuilder extends AbstractTermFragmentBuilder {
-    public static final String termType = "ext-name";
+public class ItemTermBuilder extends AbstractTermFragmentBuilder {
+    public static final String termType = "order-item";
 
-    public ExtendedTermBuilder() {
-        super(termType, "示例拓展关联条件");
+    public ItemTermBuilder() {
+        super(termType, "商品查询拓展条件");
     }
 
     @Override
@@ -49,15 +52,14 @@ public class ExtendedTermBuilder extends AbstractTermFragmentBuilder {
         if (term.getOptions().contains("not")) {
             fragments.addSql("not");
         }
-        fragments
-            .addSql("exists(select 1 from", getTableName("prod_item", column), "_ext where _ext.example_id = ")
-            .addSql(columnFullName)
-            .addSql(" and ")
-            .addSql("_ext.name = ?)")
-            .addParameter(term.getValue());
 
-        System.out.println("防火等级");
-        System.out.println(fragments);
+        fragments
+            .addSql("exists(select 1 from", getTableName("prod_order", column), "_order where _order.id = ")
+            .addSql(columnFullName)
+            .addSql(" and _item.id = ?")
+            .addParameter(term.getValue());
+        fragments.addSql(")");
+
         return fragments;
     }
 }

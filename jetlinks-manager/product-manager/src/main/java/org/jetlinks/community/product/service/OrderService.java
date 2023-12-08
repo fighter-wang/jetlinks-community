@@ -2,18 +2,25 @@ package org.jetlinks.community.product.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hswebframework.ezorm.rdb.mapping.defaults.SaveResult;
 import org.hswebframework.web.bean.FastBeanCopier;
+import org.hswebframework.web.crud.events.EntityPrepareSaveEvent;
 import org.hswebframework.web.crud.service.GenericReactiveCrudService;
+import org.hswebframework.web.exception.BusinessException;
+import org.hswebframework.web.i18n.LocaleUtils;
 import org.jetlinks.community.product.entity.ItemEntity;
 import org.jetlinks.community.product.entity.OrderEntity;
 import org.jetlinks.community.product.service.data.OrderInfoDetail;
-import org.springframework.beans.BeanUtils;
+import org.jetlinks.core.ProtocolSupport;
+import org.jetlinks.core.event.EventBus;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wangsheng
@@ -26,33 +33,53 @@ public class OrderService extends GenericReactiveCrudService<OrderEntity, String
 
     private final ItemService itemService;
 
+    private final EventBus eventBus;
+    ;
+
+//    @Transactional
+//    public Mono<SaveResult> saveOrder(OrderInfoDetail orderInfoDetail) {
+//        // 1、按照商品ID查询商品信息，当商品信息中存在OrderId，表示当前商品已经售出,报错返回
+//        Mono<List<ItemEntity>> itemList = itemService
+//            .createQuery()
+//            .where()
+//            .in(ItemEntity::getId, orderInfoDetail.getItemIds())
+//            .and()
+//            .fetch()
+//            .collectList();
+//
+//
+//        // 2、将查询到的商品塞入OrderId，并更新商品信息
+//        return itemList
+//            .flatMap(items -> {
+//                // 3、将订单中的商品信息更新
+//                List<ItemEntity> itemEntityList = items
+//                    .stream()
+////                    .map(item -> {
+////                        item.setOrderId(orderInfoDetail.getId());
+////                        return item;
+////                    })
+//                    .collect(Collectors.toList());
+//                itemService.save(itemEntityList).subscribe();
+//
+//                // 4、保存订单信息
+//                OrderEntity orderEntity = FastBeanCopier.copy(orderInfoDetail, new OrderEntity());
+//                orderEntity.setItemList(itemEntityList);
+//                return this.save(orderEntity);
+//            });
+//    }
+
     /**
-     * 根据订单ID获取订单详细信息
+     * 根据订单ID查询订单详情
      *
-     * @param id 订单ID
+     * @param id
      * @return
      */
-    public Mono<OrderInfoDetail> getOrderInfoDetail(String id) {
-        createQuery()
-            .where()
-            .and(ItemEntity::getId, ExtendedTermBuilder.termType, "ess")
-            .fetch();
-
+    public Mono<OrderEntity> getOrderInfo(String id) {
+        String itemID = "1";
         return createQuery()
-            .where(OrderEntity::getId, id)
-            .fetchOne()
-            .flatMap(order -> itemService
-                .createQuery()
-                .in(ItemEntity::getId, order.getItemIds())
-                .fetch()
-                .collectList()
-                .map(list -> {
-                    ArrayList<OrderInfoDetail> objects = new ArrayList<>();
-                    OrderInfoDetail orderInfoDetail = FastBeanCopier.copy(order, OrderInfoDetail.class);
-                    orderInfoDetail.setItemList(list);
-                    return orderInfoDetail;
-                })
-            );
+            .where()
+            .and(OrderEntity::getItemId, "user-third", itemID)
+            .fetchOne();
     }
 
     /**
@@ -62,19 +89,12 @@ public class OrderService extends GenericReactiveCrudService<OrderEntity, String
      * @return
      */
     public Mono<Integer> getOrderAccountByItemBatch(String batch) {
-        // 1、根据批次batch先查询商品ids
-        // 2、根据商品id去订单表中进行模糊查询是否存在当前商品的id，like %id%，去重
         return itemService
             .createQuery()
             .where(ItemEntity::getBatch, batch)
             .fetch()
-            .map(item -> item.getId())
-            .flatMap(itemId -> this
-                .createQuery()
-                .$like$(OrderEntity::getItemIds, itemId)
-                .fetch()
-            )
-            .distinct(OrderEntity::getId)
+            .map(ItemEntity::getId)
+            .flatMap(itemId -> createQuery().where(OrderEntity::getItemId, itemId).fetch())
             .collectList()
             .map(list -> list.size());
     }

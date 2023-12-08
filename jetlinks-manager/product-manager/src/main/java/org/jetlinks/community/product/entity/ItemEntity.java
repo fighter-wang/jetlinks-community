@@ -32,12 +32,12 @@ import javax.validation.constraints.Pattern;
 public class ItemEntity
     extends GenericEntity<String> implements RecordCreationEntity, RecordModifierEntity {
 
-    @Schema(description = "商品名")
+    @Schema(description = "商品名称")
     @Column(length = 32, nullable = false)
     @Length(max = 32, min = 1, groups = CreateGroup.class)
     private String name;
 
-    @Schema(description = "商品类型 ")
+    @Schema(description = "商品分类 ")
     @Column
     private String type;
 
@@ -45,19 +45,6 @@ public class ItemEntity
     @Pattern(regexp = "[A-Za-z]{3}@[0-9]{2}", message = "batch限制格式为：3位字母编码@2位数字编码，例如abc@12", groups = CreateGroup.class)
     @Column(length = 6, nullable = false)
     private String batch;
-
-    @Column(updatable = false)
-    @DefaultValue(generator = Generators.CURRENT_TIME)
-    @Schema(
-        description = "创建时间(只读)"
-        , accessMode = Schema.AccessMode.READ_ONLY
-    )
-    private Long createTime;
-
-    @Column
-    @DefaultValue(generator = Generators.CURRENT_TIME)
-    @Schema(description = "更新时间")
-    private Long modifyTime;
 
     @Schema(description = "上架时间")
     @Column(name = "shelf_time", updatable = false)
@@ -82,6 +69,20 @@ public class ItemEntity
     )
     private String modifierId;
 
+    @Column(updatable = false)
+    @DefaultValue(generator = Generators.CURRENT_TIME)
+    @Schema(
+        description = "创建时间(只读)"
+        , accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Long createTime;
+
+    @Column
+    @DefaultValue(generator = Generators.CURRENT_TIME)
+    @Schema(description = "更新时间")
+    private Long modifyTime;
+
+
     @Override
     public String getId() {
         if (StringUtils.isNullOrEmpty(super.getId())) {
@@ -97,5 +98,4 @@ public class ItemEntity
 
     public static String generateHexId(String itemName, String creatorId) {
         return DigestUtils.md5Hex(String.join(itemName, "|", creatorId));
-    }
-}
+    }}
