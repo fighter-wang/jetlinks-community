@@ -15,6 +15,7 @@ import org.jetlinks.community.product.entity.OrderEntity;
 import org.jetlinks.community.product.service.OrderService;
 import org.jetlinks.community.product.service.data.OrderDetailInfo;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -51,10 +52,10 @@ public class OrderController implements ReactiveServiceCrudController<OrderEntit
             .fetchPaged();
     }
 
-//    @GetMapping("/account_order/{batch}")
-//    @Operation(summary = "根据商品批次查询关联的订单的数量接口")
-//    public Mono<Integer> getOrderAccount(@PathVariable String batch) {
-//        return service.getOrderAccountByItemBatch(batch);
-//    }
+    @GetMapping("/account_order/{batch}")
+    @Operation(summary = "根据商品批次查询关联的订单的数量接口")
+    public Mono<Integer> getOrderAccount(@PathVariable String batch) {
+        return service.getOrderAccountByItemBatch(batch);
+    }
 
 }
