@@ -28,7 +28,6 @@
         <module>protocol-component</module>
         <module>relation-component</module>
         <module>tdengine-component</module>
-        <module>test-component</module>
     </modules>
 
     <artifactId>jetlinks-components</artifactId>
