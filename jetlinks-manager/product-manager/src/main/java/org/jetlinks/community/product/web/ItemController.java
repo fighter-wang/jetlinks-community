@@ -50,7 +50,7 @@ public class ItemController implements ReactiveServiceCrudController<ItemEntity,
     private final FileManager fileManager;
 
     @GetMapping("/getItemListByOrderInfo")
-    @Operation(summary = "根据订单信息动态查询商品列表")
+    @Operation(summary = "查询存在订单的商品列表")
     public Flux<ItemEntity> getItemListByOrderInfo(@Parameter QueryParamEntity queryParam){
         return service
             .createQuery()
@@ -58,6 +58,7 @@ public class ItemController implements ReactiveServiceCrudController<ItemEntity,
             .and(ItemEntity::getId, "order_item", queryParam.getTerms())
             .fetch();
     }
+
 
     //根据上传的文件来导入数据并将导入结果保存到文件中返回结果文件地址，
     //客户端可以引导用户下载结果文件
@@ -112,5 +113,4 @@ public class ItemController implements ReactiveServiceCrudController<ItemEntity,
                 ExcelUtils.write(ItemEntity.class, service.query(param.noPaging()), format)
             );
     }
-
 }

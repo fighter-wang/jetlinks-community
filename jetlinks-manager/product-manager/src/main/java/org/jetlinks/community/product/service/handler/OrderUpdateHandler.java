@@ -2,7 +2,7 @@ package org.jetlinks.community.product.service.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hswebframework.web.crud.events.EntityBeforeSaveEvent;
+import org.hswebframework.web.crud.events.EntityModifyEvent;
 import org.jetlinks.community.product.entity.OrderEntity;
 import org.jetlinks.community.product.enums.OrderStatus;
 import org.jetlinks.core.event.EventBus;
@@ -29,9 +29,9 @@ public class OrderUpdateHandler {
     public static final String TOPIC_UPDATE = "/order/updated";
 
     @EventListener
-    public void handleEvent(EntityBeforeSaveEvent<OrderEntity> event) {
+    public void handleEvent(EntityModifyEvent<OrderEntity> event) {
         List<OrderEntity> orderList = event
-            .getEntity()
+            .getAfter()
             .stream()
             .filter(orderEntity -> orderEntity.getStatus().getId().equals(OrderStatus.CONFIRMED.getId()))
             .collect(Collectors.toList());
