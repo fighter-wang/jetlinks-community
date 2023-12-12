@@ -5,17 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hswebframework.ezorm.rdb.mapping.annotation.ColumnType;
-import org.hswebframework.ezorm.rdb.mapping.annotation.DefaultValue;
-import org.hswebframework.ezorm.rdb.mapping.annotation.EnumCodec;
-import org.hswebframework.web.crud.generator.Generators;
-import org.jetlinks.community.product.entity.OrderEntity;
 import org.jetlinks.community.product.enums.OrderStatus;
-
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 /**
  * @author wangsheng

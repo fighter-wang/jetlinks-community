@@ -229,3 +229,9 @@ network:
     - 1883-1890
     - 8800-8810
     - 5060-5061
+
+# 设置订单定时清理任务的执行周期
+order:
+    timer:
+        executionCycle: 1  # 执行周期 ms
+        expirationTime: 3  # 过期时间xxx分钟之前 min
