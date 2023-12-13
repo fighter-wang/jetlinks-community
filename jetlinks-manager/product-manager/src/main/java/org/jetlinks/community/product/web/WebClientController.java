@@ -35,14 +35,20 @@ import java.util.HashMap;
 @Resource(id = "webclient", name = "WebClient接口调用管理")
 @Tag(name = "WebClient接口调用")
 @Slf4j
-public class WebClientController {
+    public class WebClientController {
     /**
      * ● 持久化一个jetlinks-iot平台（本地启动即可）的WebClient客户端，使用申请的永久token头
      * ● 实现接口：使用该客户端查询iot平台的用户分页列表，并返回数据
      * ● 实现接口：使用该客户端往iot平台新增一个用户，可指定用户名称及密码，接口返回用户id
      */
+    /**
+     * 前端API地址的共同部分
+     */
     private final String commonUri = "http://localhost:9000/api";
 
+    /**
+     * 实例化webclient
+     */
     private static WebClient webclient = WebClientPoolFactory.createWebClient();
 
     @GetMapping("/get_token")
