@@ -49,7 +49,7 @@ public class ItemController implements ReactiveServiceCrudController<ItemEntity,
 
     private final FileManager fileManager;
 
-    @GetMapping("/getItemListByOrderInfo")
+    @GetMapping("/get_item_list_by_order_info")
     @Operation(summary = "查询存在订单的商品列表")
     public Flux<ItemEntity> getItemListByOrderInfo(@Parameter QueryParamEntity queryParam){
         return service
