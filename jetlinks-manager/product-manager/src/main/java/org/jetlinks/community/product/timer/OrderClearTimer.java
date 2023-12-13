@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import javax.annotation.PreDestroy;
 import java.time.Duration;
 
@@ -81,16 +82,40 @@ public class OrderClearTimer implements CommandLineRunner {
         // Long expirationTime = orderTimerProperties.getExpirationTime();
 
         disposable = Flux
-            .interval(Duration.ofSeconds(orderTimerProperties.getExecutionCycle()))
+            .interval(Duration.ofDays(orderTimerProperties.getExecutionCycle()))
+            //每个间隔判断一次，看是否为每月1号，是就执行
+//            .filter(day -> LocalDate.now().getDayOfMonth() == 1)
             .subscribe(tick -> {
                 log.info("定时执行任务:{}", tick);
                 log.info("执行周期：{}", orderTimerProperties.getExecutionCycle());
                 log.info("过期时间：{}", orderTimerProperties.getExpirationTime());
                 this
-                    .delete(Duration.ofMinutes(orderTimerProperties.getExpirationTime()))
+                    .delete(Duration.ofDays(orderTimerProperties.getExpirationTime()))
                     .subscribe(res -> {
                         log.info("代码执行成功：{}", res);
                     });
             });
     }
+
+
+/*    @Override
+    public void run(String... args) {
+        if (disposable != null) {
+            log.error("您已启动订单定时清理任务，请勿重复启动!{}", disposable);
+            return;
+        }
+        disposable = TimerSpec
+            .cron("0 0 2 1 * ?")
+            .flux()
+            .subscribe(tick -> {
+                log.info("定时执行任务:{}", tick);
+                log.info("执行周期：{}", orderTimerProperties.getExecutionCycle());
+                log.info("过期时间：{}", orderTimerProperties.getExpirationTime());
+                this
+                    .delete(Duration.ofDays(orderTimerProperties.getExpirationTime()))
+                    .subscribe(res -> {
+                        log.info("代码执行成功：{}", res);
+                    });
+            });
+    }*/
 }

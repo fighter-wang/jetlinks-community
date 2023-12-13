@@ -233,5 +233,5 @@ network:
 # 设置订单定时清理任务的执行周期
 order:
     timer:
-        executionCycle: 1  # 执行周期 ms
-        expirationTime: 3  # 过期时间xxx分钟之前 min
+        executionCycle: 30  # 执行周期 ms
+        expirationTime: 30  # 过期时间xxx分钟之前 min
