@@ -311,6 +311,13 @@ public class DeviceDetail {
         return this;
     }
 
+    public DeviceMetadata parseMetadata(){
+        if(StringUtils.hasText(metadata)){
+            return JetLinksDeviceMetadataCodec.getInstance().doDecode(metadata);
+        }
+        return new SimpleDeviceMetadata();
+    }
+
     public DeviceDetail with(DeviceInstanceEntity device) {
 
         setId(device.getId());

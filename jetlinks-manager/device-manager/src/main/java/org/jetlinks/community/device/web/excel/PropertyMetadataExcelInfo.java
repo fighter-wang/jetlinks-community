@@ -1,6 +1,7 @@
 package org.jetlinks.community.device.web.excel;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
@@ -70,8 +71,8 @@ public class PropertyMetadataExcelInfo {
      * 所有数据类型
      */
     private static final List<String> DATA_TYPES = Lists.newArrayList(ArrayType.ID, BooleanType.ID,
-        DateTimeType.ID, DoubleType.ID, EnumType.ID, FloatType.ID, IntType.ID, LongType.ID,
-        ObjectType.ID, StringType.ID, GeoType.ID, FileType.ID, PasswordType.ID, GeoShapeType.ID);
+                                                                      DateTimeType.ID, DoubleType.ID, EnumType.ID, FloatType.ID, IntType.ID, LongType.ID,
+                                                                      ObjectType.ID, StringType.ID, GeoType.ID, FileType.ID, PasswordType.ID, GeoShapeType.ID);
 
     private static final List<String> OBJECT_NOT_HAVE = Lists.newArrayList(DateTimeType.ID, FileType.ID, ObjectType.ID, PasswordType.ID);
     /**
@@ -99,6 +100,36 @@ public class PropertyMetadataExcelInfo {
         } catch (Throwable e) {
             throw new BusinessException("第" + this.getRowNumber() + "行错误：" + e.getMessage());
         }
+    }
+
+    public static List<PropertyMetadataExcelInfo> getExcelInfoContent(List<PropertyMetadata> properties) {
+        List<PropertyMetadataExcelInfo> excelInfoList = new ArrayList<>();
+        for (PropertyMetadata property : properties) {
+            PropertyMetadataExcelInfo excelInfo = new PropertyMetadataExcelInfo();
+            excelInfo.setProperty(property.getId());
+            excelInfo.setName(property.getName());
+            excelInfo.setDataType(property.getValueType().getId());
+            if (PropertyMetadataExcelInfo.SIMPLE.contains(property.getValueType().getType())) {
+                NumberType type = (NumberType) property.getValueType();
+                excelInfo.setUnit(type.getUnit() == null ? "" : type.getUnit().getName());
+                excelInfo.setScale(type.getScale() == null ? "0" : String.valueOf(type.getScale().intValue()));
+            } else {
+                excelInfo.setUnit("");
+                excelInfo.setScale("");
+            }
+            property.getValueType();
+            Map<String, Object> expands = property.getExpands();
+            excelInfo.setSource(String.valueOf(expands.getOrDefault("source", "")));
+            excelInfo.setStorageType(String.valueOf(expands.getOrDefault("storageType", "")));
+            excelInfo.setDescription(property.getDescription());
+            Map<String, Object> valueType = JetLinksDataTypeCodecs
+                .encode(property.getValueType()).orElse(Collections.emptyMap());
+            excelInfo.setValueType(JSONObject.toJSONString(valueType));
+            excelInfo.setExpands(Collections.singletonMap("storageType", excelInfo.getStorageType()));
+            excelInfo.setType(JSONArray.parseArray(String.valueOf(property.getExpand("type").get()), String.class));
+            excelInfoList.add(excelInfo);
+        }
+        return excelInfoList;
     }
 
     public static List<ExcelHeader> getTemplateHeaderMapping(List<ConfigMetadata> configMetadataList) {
@@ -141,9 +172,9 @@ public class PropertyMetadataExcelInfo {
             dataTypeJson.put("scale", this.scale);
         }
         DataType dataType = Optional.ofNullable(this.dataType)
-            .map(DataTypes::lookup)
-            .map(Supplier::get)
-            .orElseThrow(() -> new BusinessException("error.unknown_data_type" ,500, this, getDataType()));
+                                    .map(DataTypes::lookup)
+                                    .map(Supplier::get)
+                                    .orElseThrow(() -> new BusinessException("error.unknown_data_type", 500, this, getDataType()));
         JSONObject finalDataTypeJson = dataTypeJson;
         JetLinksDataTypeCodecs
             .getCodec(dataType.getId())
@@ -162,30 +193,32 @@ public class PropertyMetadataExcelInfo {
 
     public static Flux<PropertyMetadataExcelInfo> getTemplateContentMapping() {
         return Flux.fromIterable(DATA_TYPES)
-            .flatMap(dt -> {
-                PropertyMetadataExcelInfo excelInfo = new PropertyMetadataExcelInfo();
-                DataType dataType = DataTypes.lookup(dt).get();
-                excelInfo.setProperty(dataType.getType() + "_id");
-                excelInfo.setName(dataType.getType() + "类型属性示例");
-                excelInfo.setDataType(dataType.getId());
-                excelInfo.setUnit("");
-                excelInfo.setScale("");
-                Random random = new Random();
-                excelInfo.setStorageType(random.nextBoolean() ? "direct" : "ignore");
-                excelInfo.setSource(random.nextInt(2) == 1 ? "manual" : random.nextInt(2) < 1 ? "device" : "rule");
-                excelInfo.setDescription(excelInfo.getName() + "的说明");
-                if (SIMPLE.contains(dt)) {
-                    excelInfo.setUnit(idList.get(0).getId());
-                    excelInfo.setDataType(dt);
-                    excelInfo.setScale(String.valueOf(random.nextInt(2)));
-                    excelInfo.setDescription(excelInfo.getName() + "的说明,优先使用json数据类型配置，没有则使用简单模板，仅支持int double float long四种");
-                }
-                Map<String, Object> valueType = JetLinksDataTypeCodecs.encode(buildValueType(dataType, random)).orElse(Collections.emptyMap());
-                excelInfo.setValueType(JSONObject.toJSONString(valueType));
-                excelInfo.setExpands(Collections.singletonMap("storageType", excelInfo.getStorageType()));
-                excelInfo.setType(Arrays.asList("read", "write", "report"));
-                return Flux.just(excelInfo);
-            }).doOnError(e -> {
+                   .flatMap(dt -> {
+                       PropertyMetadataExcelInfo excelInfo = new PropertyMetadataExcelInfo();
+                       DataType dataType = DataTypes.lookup(dt).get();
+                       excelInfo.setProperty(dataType.getType() + "_id");
+                       excelInfo.setName(dataType.getType() + "类型属性示例");
+                       excelInfo.setDataType(dataType.getId());
+                       excelInfo.setUnit("");
+                       excelInfo.setScale("");
+                       Random random = new Random();
+                       excelInfo.setStorageType(random.nextBoolean() ? "direct" : "ignore");
+                       excelInfo.setSource(random.nextInt(2) == 1 ? "manual" : random.nextInt(2) < 1 ? "device" : "rule");
+                       excelInfo.setDescription(excelInfo.getName() + "的说明");
+                       if (SIMPLE.contains(dt)) {
+                           excelInfo.setUnit(idList.get(0).getId());
+                           excelInfo.setDataType(dt);
+                           excelInfo.setScale(String.valueOf(random.nextInt(2)));
+                           excelInfo.setDescription(excelInfo.getName() + "的说明,优先使用json数据类型配置，没有则使用简单模板，仅支持int double float long四种");
+                       }
+                       Map<String, Object> valueType = JetLinksDataTypeCodecs
+                           .encode(buildValueType(dataType, random))
+                           .orElse(Collections.emptyMap());
+                       excelInfo.setValueType(JSONObject.toJSONString(valueType));
+                       excelInfo.setExpands(Collections.singletonMap("storageType", excelInfo.getStorageType()));
+                       excelInfo.setType(Arrays.asList("read", "write", "report"));
+                       return Flux.just(excelInfo);
+                   }).doOnError(e -> {
                 log.error("填充模板异常:", e);
             });
     }
@@ -223,7 +256,9 @@ public class PropertyMetadataExcelInfo {
                 dataType = new ObjectType();
                 objectParam.removeAll(OBJECT_NOT_HAVE);
                 for (String id : objectParam) {
-                    ((ObjectType) dataType).addProperty("param" + i, "参数" + i, buildValueType(DataTypes.lookup(id).get(), random));
+                    ((ObjectType) dataType).addProperty("param" + i, "参数" + i, buildValueType(DataTypes
+                                                                                                    .lookup(id)
+                                                                                                    .get(), random));
                     i++;
                 }
                 break;
@@ -246,8 +281,8 @@ public class PropertyMetadataExcelInfo {
         setExpands(Collections.singletonMap("storageType", storageType));
         Map<String, Object> map = FastBeanCopier.copy(this, new HashMap<>(8));
         map.put("type", type.stream()
-            .map(PropertyType::getText)
-            .collect(Collectors.joining(",")));
+                            .map(PropertyType::getText)
+                            .collect(Collectors.joining(",")));
         return map;
     }
 

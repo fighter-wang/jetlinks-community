@@ -52,7 +52,7 @@ import java.util.Map;
 import static org.hswebframework.reactor.excel.ReactorExcel.read;
 
 @RestController
-@RequestMapping({"/device-product","/device/product"})
+@RequestMapping({"/device-product", "/device/product"})
 @Resource(id = "device-product", name = "设备产品")
 @Tag(name = "设备产品接口")
 @Slf4j
@@ -178,7 +178,7 @@ public class DeviceProductController implements ReactiveServiceCrudController<De
     @Operation(summary = "获取支持的数据存储策略")
     public Flux<DeviceDataStorePolicyInfo> storePolicy() {
         return Flux.fromIterable(policies)
-            .map(DeviceDataStorePolicyInfo::of);
+                   .map(DeviceDataStorePolicyInfo::of);
     }
 
     @PostMapping("/{productId:.+}/agg/_query")
@@ -191,8 +191,10 @@ public class DeviceProductController implements ReactiveServiceCrudController<De
         return param
             .flatMapMany(request -> deviceDataService
                 .aggregationPropertiesByProduct(productId,
-                    request.getQuery(),
-                    request.getColumns().toArray(new DeviceDataService.DevicePropertyAggregation[0]))
+                                                request.getQuery(),
+                                                request
+                                                    .getColumns()
+                                                    .toArray(new DeviceDataService.DevicePropertyAggregation[0]))
             )
             .map(AggregationData::values);
     }
@@ -278,6 +280,36 @@ public class DeviceProductController implements ReactiveServiceCrudController<De
             .map(bufferFactory::wrap)
             .as(response::writeWith)
             ;
+    }
+
+    //获取产品物模型属性导出
+    @GetMapping("/{productId}/property-metadata/export.{format}")
+    @QueryAction
+    @Operation(summary = "下载产品物模型属性")
+    public Mono<Void> exportPropertyMetadata(@PathVariable @Parameter(description = "产品ID") String productId,
+                                             ServerHttpResponse response,
+                                             @PathVariable @Parameter(description = "文件格式,支持csv,xlsx") String format) throws IOException {
+        response.getHeaders().set(HttpHeaders.CONTENT_DISPOSITION,
+                                  "attachment; filename=".concat(URLEncoder.encode("产品物模型导出." + format, StandardCharsets.UTF_8
+                                      .displayName())));
+
+        return configMetadataManager
+            .getMetadataExpandsConfig(productId, DeviceMetadataType.property, "*", "*", DeviceConfigScope.product)
+            .collectList()
+            .map(PropertyMetadataExcelInfo::getTemplateHeaderMapping)
+            .flatMapMany(headers -> ReactorExcel
+                .<PropertyMetadataExcelInfo>writer(format)
+                .headers(headers)
+                .converter(PropertyMetadataExcelInfo::toMap)
+                .writeBuffer(productService
+                                 .findById(productId)
+                                 .flatMapMany(product -> {
+                                     List<PropertyMetadata> properties = product.parseMetadata().getProperties();
+                                     return Flux.fromIterable(PropertyMetadataExcelInfo.getExcelInfoContent(properties));
+                                 })))
+            .doOnError(err -> log.error(err.getMessage(), err))
+            .map(bufferFactory::wrap)
+            .as(response::writeWith);
     }
 
     //解析文件为属性物模型
